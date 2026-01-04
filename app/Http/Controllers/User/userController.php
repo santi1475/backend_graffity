@@ -26,19 +26,24 @@ class userController extends Controller
 
         if($search) {
             $query->where('name', 'like', "%".$search."%")
-                  ->orWhere('surname', 'like', "%".$search."%")
-                  ->orWhere('email', 'like', "%".$search."%")
-                  ->orWhere('phone', 'like', "%".$search."%")
-                  ->orWhere('n_document', 'like', "%".$search."%");
+                    ->orWhere('surname', 'like', "%".$search."%")
+                    ->orWhere('email', 'like', "%".$search."%")
+                    ->orWhere('phone', 'like', "%".$search."%")
+                    ->orWhere('n_document', 'like', "%".$search."%");
         } //Se emplea de esta manera al tener una base de datos PostgreSQL
-
         $users = $query->orderBy("id","desc")->paginate(25);
+        $roles = Role::all();
 
         return response()->json([
             "total" => $users->total(),
             "paginate" => 25,
             "users" => UserCollection::make($users),
-
+            "roles" => $roles->map(function($role) {
+                return [
+                    "id" => $role->id,
+                    "name" => $role->name,
+                ];
+            }),
         ]);
     }
 

@@ -26,7 +26,7 @@ class UserResource extends JsonResource
                 "name"=> $this->resource->role->name,
             ],
             "phone" => $this->resource->phone,
-            "avatar" => $this->resource->avatar ? env("APP_URL") . "storage/" . $this->resource->avatar : NULL,
+            "avatar" => $this->resource->avatar ? env("APP_URL")."storage/" . $this->resource->avatar : NULL,
             "type_document" => $this->resource->type_document,
             "n_document" => $this->resource->n_document,
             "gender" => $this->resource->gender,
