@@ -61,18 +61,23 @@ class userController extends Controller
             ]);
         }
 
-        if($request->hasFile("avatar")) {
-            $path = Storage::putFile("users",$request->file("avatar"));
-            $request->request->add(["avatar" => $path]);
-        }
+        $data = $request->all();
 
         if($request->password){
-            $request->request->add(["password" => bcrypt($request->password)]);
+            $data["password"] = bcrypt($request->password);
         }
 
-        $user = User::create($request->all());
-        $role = Role::find($request->role_id);
-        $user->assignRole($role);
+        if($request->hasFile("avatar")) {
+            $path = Storage::disk('public')->putFile("users", $request->file("avatar"));
+            $data["avatar"] = $path;
+        }
+
+        $user = User::create($data);
+
+        if ($request->role_id) {
+            $role = Role::find($request->role_id);
+            $user->assignRole($role);
+        }
 
         return response()->json([
             "code" => 200,
@@ -80,7 +85,6 @@ class userController extends Controller
             "user" => UserResource::make($user),
         ]);
     }
-
     /**
      * Display the specified resource.
      */
@@ -94,7 +98,7 @@ class userController extends Controller
      */
     public function update(Request $request, string $id)
     {
-        $is_exists = User::where("id","<>",$id)->where("email", $request->email)->first();
+        $is_exists = User::where("id", "<>", $id)->where("email", $request->email)->first();
 
         if($is_exists) {
             return response()->json([
@@ -105,28 +109,37 @@ class userController extends Controller
 
         $user = User::findOrFail($id);
 
+        $data = $request->all();
+
         if($request->hasFile("avatar")) {
-            if($user -> avatar){
-                Storage::delete($user -> avatar);
+            if($user->avatar){
+                Storage::disk('public')->delete($user->avatar);
             }
-            $path = Storage::putFile("users",$request->file("avatar"));
-            $request->request->add(["avatar" => $path]);
+
+            $path = Storage::disk('public')->putFile("users", $request->file("avatar"));
+
+            $data["avatar"] = $path;
         }
 
         if($request->password){
-            $request->request->add(["password" => bcrypt($request->password)]);
+            $data["password"] = bcrypt($request->password);
+        } else {
+            unset($data["password"]);
         }
 
-        if($user->role_id != $request->role_id){
+        if($request->role_id && $user->role_id != $request->role_id){
             $role_current = Role::find($user->role_id);
-            $user->removeRole($role_current);
+            if($role_current) {
+                $user->removeRole($role_current);
+            }
 
             $role_new = Role::find($request->role_id);
             $user->assignRole($role_new);
+
+            $data['role_id'] = $request->role_id;
         }
 
-
-        $user->update($request->all());
+        $user->update($data);
 
         return response()->json([
             "code" => 200,
