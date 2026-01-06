@@ -1,9 +1,12 @@
 <?php
-use Illuminate\Support\Facades\Route;
+use App\Models\Company;
 // Controllers
+use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\Role\RoleController;
 use App\Http\Controllers\User\userController;
+use App\Http\Controllers\Client\CompanyController;
+use App\Http\Controllers\Product\CategorieController;
 
 Route::group([
     'prefix' => 'auth'
@@ -21,5 +24,10 @@ Route::group([
     Route::resource("roles",RoleController::class);
     Route::post("users/{id}",[userController::class,"update"]);
     Route::resource("users",userController::class);
+
+    Route::post("categories/{id}",[CategorieController::class,"update"]);
+    Route::resource("categories",CategorieController::class);
+
+    Route::resource("company",CompanyController::class);
 
 });
