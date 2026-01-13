@@ -7,6 +7,7 @@ use App\Http\Controllers\Role\RoleController;
 use App\Http\Controllers\User\userController;
 use App\Http\Controllers\Client\CompanyController;
 use App\Http\Controllers\Product\CategorieController;
+use App\Http\Controllers\Product\ProductController;
 
 Route::group([
     'prefix' => 'auth'
@@ -30,4 +31,5 @@ Route::group([
 
     Route::resource("company",CompanyController::class);
 
+    Route::resource("products",ProductController::class);
 });
