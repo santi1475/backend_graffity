@@ -31,5 +31,6 @@ Route::group([
 
     Route::resource("company",CompanyController::class);
 
+    Route::get("products/config",[ProductController::class,"config"]);
     Route::resource("products",ProductController::class);
 });

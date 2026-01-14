@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Product;
 
 use Illuminate\Http\Request;
 use App\Models\Product\Product;
+use App\Models\Product\Categorie;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Storage;
 use App\Http\Resources\Product\ProductResource;
@@ -26,7 +27,18 @@ class ProductController extends Controller
             "products" => ProductCollection::collection($products)
         ], 200);
     }
-
+    public function config()
+    {
+        $categories = Categorie::where("state", 1)->get();
+        return response()->json([
+            "categories" => $categories->map(function($categorie){
+                return [
+                    "id" => $categorie->id,
+                    "title" => $categorie->title    ,
+                ];
+            })
+        ]);
+    }
     /**
      * Store a newly created resource in storage.
      */
