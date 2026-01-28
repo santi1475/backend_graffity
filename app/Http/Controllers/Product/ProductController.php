@@ -24,7 +24,9 @@ class ProductController extends Controller
         return response()->json([
             "total" => $products->total(),
             "paginate" => 25,
-            "products" => ProductCollection::collection($products)
+            "products" => [
+                "data" => ProductResource::collection($products)
+            ]
         ], 200);
     }
     public function config()
@@ -66,6 +68,7 @@ class ProductController extends Controller
         return response()->json([
             "code" => 200,
             "message" => "Producto creado exitosamente.",
+            "product" => ProductResource::make($product)
         ]);
     }
 
@@ -112,6 +115,7 @@ class ProductController extends Controller
         return response()->json([
             "code" => 200,
             "message" => "Producto actualizado exitosamente.",
+            "product" => ProductResource::make($product)
         ]);
     }
 

@@ -18,7 +18,7 @@ class ProductResource extends JsonResource
             "id"=>$this->resource->id,
             "title"=>$this->resource->title,
             "sku"=>$this->resource->sku,
-            "imagen"=>env("APP_URL")."storage/".$this->resource->imagen,
+            "imagen"=>env("APP_URL")."/storage/".$this->resource->imagen,
             "categorie_id"=>$this->resource->categorie_id,
             "categorie"=> [
                 "id"=>$this->resource->categorie->id,
@@ -39,7 +39,7 @@ class ProductResource extends JsonResource
             "is_ivap"=>$this->resource->is_ivap,
             "percentage_isc"=>$this->resource->percentage_isc,
             "is_especial_nota"=>$this->resource->is_especial_nota,
-            "created_at"=>$this->resource->format("Y-m-d h:i A"),
+            "created_at"=>$this->resource->created_at->format("Y-m-d h:i A"),
         ];
     }
 }
