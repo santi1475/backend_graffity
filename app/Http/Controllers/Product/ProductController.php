@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Product;
 use Illuminate\Http\Request;
 use App\Models\Product\Product;
 use App\Models\Product\Categorie;
+use App\Models\Product\Brand;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Storage;
 use App\Http\Resources\Product\ProductResource;
@@ -17,9 +18,16 @@ class ProductController extends Controller
      */
     public function index(Request $request)
     {
-        $search = $request->input('search');
-        $categorie_id = $request->input('categorie_id');
-        $products = Product::orderBy("id", "desc") -> paginate(25);
+        $search = $request->get("search");
+        $categorie_id = $request->get('categorie_id');
+        $brand_id = $request->get('brand_id');
+        $state = $request->get('state');
+        $unidad_medida = $request->get('unidad_medida');
+
+        $products = Product::with(["categorie", "brand"])
+            ->FilterMultiple($search, $categorie_id, $state, $unidad_medida, $brand_id)
+            ->orderBy("id", "desc")
+            ->paginate(25);
 
         return response()->json([
             "total" => $products->total(),
@@ -32,11 +40,18 @@ class ProductController extends Controller
     public function config()
     {
         $categories = Categorie::where("state", 1)->get();
+        $brands = Brand::where("state", 1)->get();
         return response()->json([
             "categories" => $categories->map(function($categorie){
                 return [
                     "id" => $categorie->id,
                     "title" => $categorie->title    ,
+                ];
+            }),
+            "brands" => $brands->map(function($brand){
+                return [
+                    "id" => $brand->id,
+                    "name" => $brand->name,
                 ];
             })
         ]);
@@ -53,7 +68,12 @@ class ProductController extends Controller
                 "message" => "El título del producto ya existe."
             ]);
         }
-        $is_product_sku = Product::where("sku", $request->sku)->first();
+        $sku = $request->sku;
+        if (!$sku) {
+            $draftProduct = new Product($request->all());
+            $sku = Product::generateSku($draftProduct);
+        }
+        $is_product_sku = Product::where("sku", $sku)->first();
         if ($is_product_sku) {
             return response()->json([
                 "code" => 405,
@@ -64,6 +84,7 @@ class ProductController extends Controller
             $path = Storage::putFile("products",$request->file('image'));
             $request->request->add(["imagen" => $path]);
         }
+        $request->request->add(["sku" => $sku]);
         $product = Product::create($request->all());
         return response()->json([
             "code" => 200,
@@ -95,14 +116,28 @@ class ProductController extends Controller
                 "message" => "El título del producto ya existe."
             ]);
         }
-        $is_product_sku = Product::where("id", "<>", $id)->where("sku", $request->sku)->first();
-        if ($is_product_sku) {
-            return response()->json([
-                "code" => 405,
-                "message" => "El SKU del producto ya existe."
-            ]);
-        }
         $product = Product::findOrFail($id);
+
+        $sku = $request->sku;
+        $shouldRegenerateSku = !$sku && (
+            ($request->filled("brand_id") && $request->brand_id != $product->brand_id) ||
+            ($request->filled("categorie_id") && $request->categorie_id != $product->categorie_id) ||
+            !$product->sku
+        );
+        if ($shouldRegenerateSku) {
+            $draftProduct = new Product(array_merge($product->toArray(), $request->all()));
+            $sku = Product::generateSku($draftProduct);
+        }
+        if ($sku) {
+            $is_product_sku = Product::where("id", "<>", $id)->where("sku", $sku)->first();
+            if ($is_product_sku) {
+                return response()->json([
+                    "code" => 405,
+                    "message" => "El SKU del producto ya existe."
+                ]);
+            }
+            $request->request->add(["sku" => $sku]);
+        }
 
         if($request->hasFile('image')){
             if($product->imagen){

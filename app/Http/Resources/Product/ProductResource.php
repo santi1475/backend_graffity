@@ -18,18 +18,26 @@ class ProductResource extends JsonResource
             "id"=>$this->resource->id,
             "title"=>$this->resource->title,
             "sku"=>$this->resource->sku,
-            "imagen"=>env("APP_URL")."/storage/".$this->resource->imagen,
+            "imagen"=>$this->resource->imagen
+                ? env("APP_URL")."/storage/".$this->resource->imagen
+                : null,
             "categorie_id"=>$this->resource->categorie_id,
-            "categorie"=> [
+            "categorie"=> $this->resource->categorie ? [
                 "id"=>$this->resource->categorie->id,
                 "title"=>$this->resource->categorie->title,
-            ],
+            ] : null,
+            "brand_id"=>$this->resource->brand_id,
+            "brand"=>$this->resource->brand ? [
+                "id"=>$this->resource->brand->id,
+                "name"=>$this->resource->brand->name,
+            ] : null,
             "price_general"=>$this->resource->price_general,
             "price_company"=>$this->resource->price_company,
             "description"=>$this->resource->description,
             "is_discount"=>$this->resource->is_discount,
             "max_discount"=>$this->resource->max_discount,
             "disponiblidad"=>$this->resource->disponiblidad,
+            "barcode"=>$this->resource->barcode,
             "state"=>$this->resource->state,
             "state_stock"=>$this->resource->state_stock,
             "unidad_medida"=>$this->resource->unidad_medida,

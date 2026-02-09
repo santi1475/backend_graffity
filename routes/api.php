@@ -8,6 +8,7 @@ use App\Http\Controllers\User\userController;
 use App\Http\Controllers\Client\CompanyController;
 use App\Http\Controllers\Product\CategorieController;
 use App\Http\Controllers\Product\ProductController;
+use App\Http\Controllers\Product\BrandController;
 
 Route::group([
     'prefix' => 'auth'
@@ -28,6 +29,9 @@ Route::group([
 
     Route::post("categories/{id}",[CategorieController::class,"update"]);
     Route::resource("categories",CategorieController::class);
+
+    Route::post("brands/{id}",[BrandController::class,"update"]);
+    Route::resource("brands",BrandController::class);
 
     Route::resource("company",CompanyController::class);
 
