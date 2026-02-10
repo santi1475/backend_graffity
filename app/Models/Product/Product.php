@@ -5,6 +5,8 @@ namespace App\Models\Product;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Carbon\Carbon;
+use App\Models\Product\Brand;
+use App\Models\Product\Categorie;
 
 
 class Product extends Model
@@ -23,11 +25,13 @@ class Product extends Model
         "is_discount",
         "max_discount",
         "disponiblidad",
+        'barcode',
         "state",
         "state_stock",
         "unidad_medida",
         "stock",
         "include_igv",
+        "brand_id",
 
         "is_icbper",
         "is_ivap",
@@ -51,32 +55,56 @@ class Product extends Model
         return $this->belongsTo(Categorie::class,"categorie_id");
     }
 
-    // public function getProductImagenAttribute()
-    // {
-    //     $link = null;
-    //     if($this->imagen){
-    //         if(str_contains($this->imagen,"https://") || str_contains($this->imagen,"http://")){
-    //             $link = $this->imagen;
-    //         }else{
-    //             $link =  env('APP_URL').'storage/'.$this->imagen;
-    //         }
-    //     }
-    //     return $link;
-    // }
+    public function brand()
+    {
+        return $this->belongsTo(Brand::class,"brand_id");
+    }
 
-    // public function scopeFilterAdvance($query,$search_product,$product_categorie_id,$state,$unidad_medida){
-    //     if($search_product){
-    //         $query->where(DB::raw("CONCAT(products.title,' ',products.sku)"),"like","%".$search_product."%");
-    //     }
-    //     if($product_categorie_id){
-    //         $query->where("product_categorie_id",$product_categorie_id);
-    //     }
-    //     if($state){
-    //         $query->where("state",$state);
-    //     }
-    //     if($unidad_medida){
-    //         $query->where("unidad_medida",$unidad_medida);
-    //     }
-    //     return $query;
-    // }
+    public static function generateSku($product)
+    {
+        $brand = $product->brand ?? null;
+        if (!$brand && !empty($product->brand_id)) {
+            $brand = Brand::find($product->brand_id);
+        }
+
+        $category = $product->categorie ?? null;
+        if (!$category && !empty($product->categorie_id)) {
+            $category = Categorie::find($product->categorie_id);
+        }
+
+        $brandPrefix = $brand
+            ? strtoupper(substr($brand->name, 0, 3))
+            : 'GEN';
+
+        $categoryPrefix = $category
+            ? strtoupper(substr($category->title, 0, 3))
+            : 'VAR';
+
+        $categoryCount = self::where('categorie_id', $product->categorie_id)->count();
+        $nextNumber = $categoryCount + 1;
+
+        $correlative = str_pad($nextNumber, 5, '0', STR_PAD_LEFT);
+
+        return "{$brandPrefix}-{$categoryPrefix}-{$correlative}";
+    }
+
+    public function scopeFilterMultiple($query,$search, $categorie_id, $state, $unidad_medida, $brand_id){
+        if($search){
+            $query->where("title","like","%".$search."%");
+        }
+        if($categorie_id){
+            $query->where("categorie_id",$categorie_id);
+        }
+        if($brand_id){
+            $query->where("brand_id",$brand_id);
+        }
+        if($state){
+            $query->where("state",$state);
+        }
+        if($unidad_medida){
+            $query->where("unidad_medida",$unidad_medida);
+        }
+        return $query;
+        //nos quedamos en 9:23
+    }
 }

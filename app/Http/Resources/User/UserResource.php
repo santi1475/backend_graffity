@@ -21,10 +21,10 @@ class UserResource extends JsonResource
             "surname" => $this->resource->surname,
             "full_name" => $this->resource->name . ' ' . $this->resource->surname,
             "role_id" => $this->resource->role_id,
-            "role" =>[
-                "id"=> $this->resource->role->id,
-                "name"=> $this->resource->role->name,
-            ],
+            "role" => $this->resource->role ? [
+                "id" => $this->resource->role->id,
+                "name" => $this->resource->role->name,
+            ] : null,
             "phone" => $this->resource->phone,
             "avatar" => $this->resource->avatar ? env("APP_URL")."/storage/" . $this->resource->avatar : NULL,
             "type_document" => $this->resource->type_document,
