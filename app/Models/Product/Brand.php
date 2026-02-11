@@ -12,7 +12,12 @@ class Brand extends Model
 {
     use SoftDeletes;
 
-    protected $fillable = ['name', 'image', 'state'];
+    protected $fillable = [
+        'name',
+        'image',
+        'icon_name',
+        'state'
+    ];
 
     public function setCreatedAtAttribute($value)
     {

@@ -6,8 +6,8 @@ use Illuminate\Http\Request;
 use App\Models\Product\Brand;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Storage;
-use App\Http\Resources\Product\BrandResource;
-use App\Http\Resources\Product\BrandCollection;
+use App\Http\Resources\Brand\BrandResource;
+use App\Http\Resources\Brand\BrandCollection;
 
 class BrandController extends Controller
 {
@@ -24,9 +24,15 @@ class BrandController extends Controller
         return response()->json([
             "total" => $brands->total(),
             "paginate" => 5,
-            "brands" => [
-                "data" => BrandResource::collection($brands)
-            ]
+            "brands" => $brands->map(function ($brand) {
+                return [
+                    "id" => $brand->id,
+                    "name" => $brand->name,
+                    "image" => $brand->image ? env("APP_URL")."/storage/".$brand->image : null,
+                    "state" => $brand->state,
+                    "created_at" => $brand->created_at->format("Y/m/d H:i A"),
+                ];
+            }),
         ], 200);
     }
 
@@ -43,12 +49,18 @@ class BrandController extends Controller
             ], 400);
         }
 
+       $data = $request->all();
+
         if($request->hasFile("image")){
-            $path = Storage::putFile("brands",$request->file("image"));
-            $request->request->add(["image" => $path]);
+            $path = Storage::putFile("brands", $request->file("image"));
+            $data["image"] = $path;
         }
 
-        $brand = Brand::create($request->all());
+        if(!$request->has('icon_name')){
+             $data['icon_name'] = 'Badge'; // Default
+        }
+
+        $brand = Brand::create($data);
 
         return response()->json([
             "code" => 200,
@@ -56,7 +68,6 @@ class BrandController extends Controller
             "brand" => BrandResource::make($brand)
         ], 200);
     }
-
     /**
      * Display the specified resource.
      */

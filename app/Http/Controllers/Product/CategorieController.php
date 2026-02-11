@@ -15,9 +15,10 @@ class CategorieController extends Controller
     public function index(Request $request)
     {
         $search = $request->get("search");
-        $categories = Categorie::where("title", "like", "%".$search."%")
+        $categories = Categorie::where("title", "like", "%" . $search . "%")
             ->orderBy("id", "desc")
             ->paginate(5);
+
         return response()->json([
             "total" => $categories->total(),
             "paginate" => 5,
@@ -25,13 +26,13 @@ class CategorieController extends Controller
                 return [
                     "id" => $categorie->id,
                     "title" => $categorie->title,
-                    "imagen" => env("APP_URL")."/storage/".$categorie->imagen,
+                    "icon_name" => $categorie->icon_name ?? 'Package',
+                    "imagen" => $categorie->imagen ? env("APP_URL") . "/storage/" . $categorie->imagen : null,
                     "state" => $categorie->state,
                     "created_at" => $categorie->created_at->format("Y/m/d H:i A"),
                 ];
             }),
-        ]
-        );
+        ]);
     }
 
     /**
@@ -46,23 +47,29 @@ class CategorieController extends Controller
                 "message" => "La categoría ya existe."
             ]);
         }
-        if($request->hasFile("image")){
-            $path = Storage::putFile("categories",$request->file("image"));
-            $request->request->add(["imagen" => $path]);
+        $data = $request->all();
+
+        if (!$request->has('icon_name')) {
+            $data['icon_name'] = 'Package';
         }
-        $categorie = Categorie::create($request->all());
+
+        if ($request->hasFile("image")) {
+            $path = Storage::putFile("categories", $request->file("image"));
+            $data["imagen"] = $path;
+        }
+        $categorie = Categorie::create($data);
         return response()->json([
             "code" => 200,
             "message" => "Categoría creada correctamente.",
             "categorie" => [
-                    "id" => $categorie->id,
-                    "title" => $categorie->title,
-                    "imagen" => env("APP_URL")."/storage/".$categorie->imagen,
-                    "state" => $categorie->state,
-                    "created_at" => $categorie->created_at->format("Y/m/d H:i A"),
-                ],
+                "id" => $categorie->id,
+                "title" => $categorie->title,
+                "icon_name" => $categorie->icon_name,
+                "imagen" => $categorie->imagen ? env("APP_URL") . "/storage/" . $categorie->imagen : null,
+                "state" => $categorie->state,
+                "created_at" => $categorie->created_at->format("Y/m/d H:i A"),
+            ],
         ]);
-
     }
 
     /**
@@ -78,7 +85,7 @@ class CategorieController extends Controller
      */
     public function update(Request $request, string $id)
     {
-        $is_exists = Categorie::where("id","<>", $id)->where("title", $request->title)->first();
+        $is_exists = Categorie::where("id", "<>", $id)->where("title", $request->title)->first();
         if ($is_exists) {
             return response()->json([
                 "code" => 400,
@@ -86,24 +93,33 @@ class CategorieController extends Controller
             ]);
         }
         $categorie = Categorie::find($id);
-        if($request->hasFile("image")){
-            if($categorie->imagen){
+
+        $data = $request->all();
+        if (!$request->has('icon_name')) {
+            $data['icon_name'] = 'Package';
+        }
+
+        if ($request->hasFile("image")) {
+            if ($categorie->imagen) {
                 Storage::delete($categorie->imagen);
             }
-            $path = Storage::putFile("categories",$request->file("image"));
-            $request->request->add(["imagen" => $path]);
+            $path = Storage::putFile("categories", $request->file("image"));
+            $data["imagen"] = $path;
         }
-        $categorie->update($request->all());
+
+        $categorie->update($data);
+
         return response()->json([
             "code" => 200,
             "message" => "Categoría editada correctamente.",
             "categorie" => [
-                    "id" => $categorie->id,
-                    "title" => $categorie->title,
-                    "imagen" => env("APP_URL")."/storage/".$categorie->imagen,
-                    "state" => $categorie->state,
-                    "created_at" => $categorie->created_at->format("Y/m/d H:i A"),
-                ],
+                "id" => $categorie->id,
+                "title" => $categorie->title,
+                "icon_name" => $categorie->icon_name,
+                "imagen" => $categorie->imagen ? env("APP_URL") . "/storage/" . $categorie->imagen : null,
+                "state" => $categorie->state,
+                "created_at" => $categorie->created_at->format("Y/m/d H:i A"),
+            ],
         ]);
     }
 

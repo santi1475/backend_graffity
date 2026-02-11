@@ -12,6 +12,7 @@ class Categorie extends Model
     protected $fillable = [
         "title",
         "imagen",
+        'icon_name',
         "state",
     ];
 
