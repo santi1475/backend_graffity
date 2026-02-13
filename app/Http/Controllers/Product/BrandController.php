@@ -19,11 +19,11 @@ class BrandController extends Controller
         $search = $request->get("search");
         $brands = Brand::where("name", "like", "%".$search."%")
             ->orderBy("id", "desc")
-            ->paginate(5);
+            ->paginate(25);
 
         return response()->json([
             "total" => $brands->total(),
-            "paginate" => 5,
+            "paginate" => 25,
             "brands" => $brands->map(function ($brand) {
                 return [
                     "id" => $brand->id,
