@@ -41,7 +41,10 @@ class ProductController extends Controller
     {
         $categories = Categorie::where("state", 1)->get();
         $brands = Brand::where("state", 1)->get();
+        $latestProductId = Product::latest('id')->value('id');
+        $nextProductId = $latestProductId ? $latestProductId + 1 : 1;
         return response()->json([
+            "next_product_id" => $nextProductId,
             "categories" => $categories->map(function($categorie){
                 return [
                     "id" => $categorie->id,
