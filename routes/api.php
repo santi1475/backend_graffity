@@ -9,6 +9,8 @@ use App\Http\Controllers\Client\CompanyController;
 use App\Http\Controllers\Product\CategorieController;
 use App\Http\Controllers\Product\ProductController;
 use App\Http\Controllers\Product\BrandController;
+use App\Http\Controllers\Product\ScanController;
+
 
 Route::group([
     'prefix' => 'auth'
@@ -38,3 +40,6 @@ Route::group([
     Route::get("products/config",[ProductController::class,"config"]);
     Route::resource("products",ProductController::class);
 });
+
+Route::post('/scan', [ScanController::class, 'processScan'])->middleware('throttle:60,1');
+

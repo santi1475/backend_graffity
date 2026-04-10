@@ -25,7 +25,8 @@ class ScanController extends Controller
 
         return response()->json([
             'message' => 'Código enviado correctamente',
-            'product_found' => (bool) $product
+            'product_found' => (bool) $product,
+            'product_name' => $product ? $product->title : null
         ]);
     }
 }
